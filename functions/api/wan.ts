@@ -63,7 +63,7 @@ type NodeMap = Partial<{
 
 type GenerationMode = 'i2v' | 'animate'
 
-const SIGNUP_TICKET_GRANT = 3
+const SIGNUP_TICKET_GRANT = 5
 const DEFAULT_VIDEO_TICKET_COST = 1
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024
 const MAX_VIDEO_BYTES = 150 * 1024 * 1024
