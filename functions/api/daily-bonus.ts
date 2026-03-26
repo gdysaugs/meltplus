@@ -7,9 +7,9 @@ type Env = {
 }
 
 const corsMethods = 'POST, GET, OPTIONS'
-const BONUS_COOLDOWN_HOURS = 12
+const BONUS_COOLDOWN_HOURS = 24
 const BONUS_COOLDOWN_MS = BONUS_COOLDOWN_HOURS * 60 * 60 * 1000
-const BONUS_AMOUNT = 1
+const BONUS_AMOUNT = 3
 const DAILY_BONUS_REASONS = ['daily_bonus', 'daily_bonus_claim']
 
 const INTERNAL_SERVER_ERROR_MESSAGE = '\u30b5\u30fc\u30d0\u30fc\u5185\u90e8\u30a8\u30e9\u30fc\u304c\u767a\u751f\u3057\u307e\u3057\u305f\u3002\u6642\u9593\u3092\u304a\u3044\u3066\u518d\u5ea6\u304a\u8a66\u3057\u304f\u3060\u3055\u3044\u3002'

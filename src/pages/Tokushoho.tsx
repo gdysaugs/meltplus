@@ -5,8 +5,8 @@ import './legal.css'
 
 export function Tokushoho() {
   return (
-    <div className="camera-app">
-      <TopNav />
+    <div className="camera-app legal-page">
+      <TopNav hideGuestAuthButton />
       <main className="legal-shell">
         <section className="legal-card">
           <h1>特定商取引法に基づく表記（特商法）</h1>
@@ -17,23 +17,23 @@ export function Tokushoho() {
           <div className="legal-table">
             <div className="legal-row">
               <div className="legal-key">販売事業者</div>
-              <div className="legal-value">DoobleAI</div>
+              <div className="legal-value">MeltPlus</div>
             </div>
             <div className="legal-row">
               <div className="legal-key">運営統括責任者</div>
-              <div className="legal-value">王喜昇</div>
+              <div className="legal-value">Sato Natsu</div>
             </div>
             <div className="legal-row">
               <div className="legal-key">所在地</div>
-              <div className="legal-value">東京都渋谷区道玄坂</div>
+              <div className="legal-value">愛知県名古屋市中区</div>
             </div>
             <div className="legal-row">
               <div className="legal-key">電話番号</div>
-              <div className="legal-value">0120010101010</div>
+              <div className="legal-value">09078276569</div>
             </div>
             <div className="legal-row">
               <div className="legal-key">販売URL</div>
-              <div className="legal-value">https://aidooble.org</div>
+              <div className="legal-value">https://meltplus.win</div>
             </div>
             <div className="legal-row">
               <div className="legal-key">お問い合わせ方法</div>
@@ -96,10 +96,7 @@ export function Tokushoho() {
           </div>
 
           <div className="legal-links">
-            <Link className="legal-link" to="/terms">
-              利用規約
-            </Link>
-            <Link className="legal-link" to="/video">
+            <Link className="legal-link" to="/">
               生成ページへ戻る
             </Link>
           </div>

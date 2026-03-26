@@ -81,10 +81,12 @@ const requireGoogleUser = async (request: Request, env: Env, corsHeaders: Header
 }
 
 const PRICE_MAP = new Map([
-  ['price_1TCz5nA9KcmC9XImyo6sNLGa', { label: 'Starter', tickets: 25 }],
-  ['price_1TCz67A9KcmC9XImBOK1rmiV', { label: 'Basic', tickets: 80 }],
-  ['price_1TCz6MA9KcmC9XImMNMlFeGO', { label: 'Plus', tickets: 220 }],
-  ['price_1TCz6iA9KcmC9XImkYYhJeQR', { label: 'Pro', tickets: 900 }],
+  ['price_1TEr9NAVfITDQlasv8ihyh8x', { label: 'Starter', tickets: 30 }],
+  ['price_1TEr9bAVfITDQlaslyNuz3SC', { label: 'Basic', tickets: 80 }],
+  ['price_1TEr9pAVfITDQlasrgQspVXr', { label: 'Standard', tickets: 160 }],
+  ['price_1TErAKAVfITDQlasTRAEkoHO', { label: 'Plus', tickets: 280 }],
+  ['price_1TErAaAVfITDQlasH5ggQot9', { label: 'Pro', tickets: 500 }],
+  ['price_1TErApAVfITDQlas4PgUgN6i', { label: 'Ultra', tickets: 1000 }],
 ])
 
 const getRedirectUrl = (env: Env, request: Request, key: 'STRIPE_SUCCESS_URL' | 'STRIPE_CANCEL_URL', fallback: string) =>
@@ -148,8 +150,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   params.set('metadata[tickets]', String(plan.tickets))
   params.set('metadata[price_id]', priceId)
   params.set('metadata[plan_label]', plan.label)
-  params.set('metadata[app]', 'dooble')
-  params.set('payment_intent_data[statement_descriptor]', 'AIDOOBLE')
+  params.set('metadata[app]', 'meltplus')
+  params.set('payment_intent_data[statement_descriptor]', 'MELTPLUS')
 
   let stripeRes: Response
   try {

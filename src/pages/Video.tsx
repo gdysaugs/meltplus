@@ -1,4 +1,4 @@
-﻿import {
+import {
   useCallback,
   useEffect,
   useMemo,
@@ -10,9 +10,10 @@
 import { Link, useNavigate } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabaseClient'
-import { buildPromptWithQualityTags } from '../lib/qualityPrompt'
 import { saveGeneratedAsset } from '../lib/downloadMedia'
+import { applyMagicPromptSet } from '../lib/qualityPrompt'
 import { TopNav } from '../components/TopNav'
+import { GuestLanding } from './GuestLanding'
 import './camera.css'
 import './video-studio.css'
 
@@ -20,18 +21,7 @@ const API_ENDPOINT = '/api/wan'
 const FIXED_STEPS = 4
 const FIXED_CFG = 1
 const FIXED_FPS = 10
-const VIDEO_LENGTH_OPTIONS = [
-  { seconds: 5, frames: 53, ticketCost: 1, label: '5秒（1トークン）' },
-  { seconds: 7, frames: 73, ticketCost: 3, label: '7秒（3トークン）' },
-  { seconds: 9, frames: 93, ticketCost: 5, label: '9秒（5トークン）' },
-] as const
-const DEFAULT_VIDEO_LENGTH_SECONDS = VIDEO_LENGTH_OPTIONS[0].seconds
-const resolveVideoLengthOption = (seconds: number) =>
-  VIDEO_LENGTH_OPTIONS.find((option) => option.seconds === seconds) ?? VIDEO_LENGTH_OPTIONS[0]
-const GUEST_PROMO_IMAGE = '/media/guest-hero/guest-source.png'
-const GUEST_PROMO_VIDEO = '/media/guest-hero/guest-demo.mp4'
-const GUEST_PROMPT_EXAMPLE = '女性がペンを咥える'
-
+const FIXED_VIDEO_LENGTH = { seconds: 6, frames: 63, ticketCost: 1 } as const
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 const toBase64 = (dataUrl: string) => {
@@ -197,9 +187,8 @@ export function Video() {
   const [sourcePayload, setSourcePayload] = useState<string | null>(null)
   const [sourceName, setSourceName] = useState('')
   const [prompt, setPrompt] = useState('')
-  const [qualityTagsEnabled, setQualityTagsEnabled] = useState(false)
+  const [magicPromptEnabled, setMagicPromptEnabled] = useState(true)
   const [negativePrompt, setNegativePrompt] = useState('')
-  const [videoLengthSeconds, setVideoLengthSeconds] = useState(DEFAULT_VIDEO_LENGTH_SECONDS)
   const [width, setWidth] = useState(832)
   const [height, setHeight] = useState(576)
   const [displayVideo, setDisplayVideo] = useState<string | null>(null)
@@ -217,11 +206,10 @@ export function Video() {
   const navigate = useNavigate()
 
   const accessToken = session?.access_token ?? ''
-  const selectedVideoLength = useMemo(() => resolveVideoLengthOption(videoLengthSeconds), [videoLengthSeconds])
+  const selectedVideoLength = FIXED_VIDEO_LENGTH
   const requiredTickets = selectedVideoLength.ticketCost
   const canGenerate = Boolean(sourcePayload && !isRunning && session)
   const isGif = displayVideo?.startsWith('data:image/gif')
-  const showGuestPromo = !session && !isRunning && !displayVideo
 
   const viewerStyle = useMemo(
     () =>
@@ -283,7 +271,7 @@ export function Video() {
 
     if (!res.ok) {
       setTicketStatus('error')
-      setTicketMessage(data?.error || 'チケット情報の取得に失敗しました。')
+        setTicketMessage(data?.error || 'クレジット情報の取得に失敗しました。')
       setTicketCount(null)
       return null
     }
@@ -308,12 +296,16 @@ export function Video() {
   const submitVideo = useCallback(
     async (imagePayload: string, token: string) => {
       if (!imagePayload) throw new Error('画像が必要です。')
-      const finalPrompt = buildPromptWithQualityTags(prompt, qualityTagsEnabled)
+      const enhanced = applyMagicPromptSet({
+        prompt,
+        negativePrompt,
+        enabled: magicPromptEnabled,
+      })
 
       const input: Record<string, unknown> = {
         mode: 'i2v',
-        prompt: finalPrompt,
-        negative_prompt: negativePrompt,
+        prompt: enhanced.prompt,
+        negative_prompt: enhanced.negativePrompt,
         width,
         height,
         fps: FIXED_FPS,
@@ -345,7 +337,7 @@ export function Video() {
         const message = normalizeErrorMessage(rawMessage)
         if (isTicketShortage(res.status, message)) {
           setShowTicketModal(true)
-          setStatusMessage('チケットが不足しています。')
+          setStatusMessage('クレジットが不足しています。')
           throw new Error('TICKET_SHORTAGE')
         }
         setErrorModalMessage(message)
@@ -366,7 +358,7 @@ export function Video() {
       if (!jobId) throw new Error('ジョブIDを取得できませんでした。')
       return { jobId }
     },
-    [height, negativePrompt, prompt, qualityTagsEnabled, selectedVideoLength, sourceName, width],
+    [height, magicPromptEnabled, negativePrompt, prompt, sourceName, width],
   )
 
   const pollJob = useCallback(async (jobId: string, runId: number, token?: string) => {
@@ -391,7 +383,7 @@ export function Video() {
         const message = normalizeErrorMessage(rawMessage)
         if (isTicketShortage(res.status, message)) {
           setShowTicketModal(true)
-          setStatusMessage('チケットが不足しています。')
+          setStatusMessage('クレジットが不足しています。')
           throw new Error('TICKET_SHORTAGE')
         }
         setErrorModalMessage(message)
@@ -505,19 +497,19 @@ export function Video() {
     }
 
     if (ticketStatus === 'loading') {
-      setStatusMessage('チケットを確認中...')
+      setStatusMessage('クレジットを確認中...')
       return
     }
 
     if (accessToken) {
-      setStatusMessage('チケットを確認中...')
+      setStatusMessage('クレジットを確認中...')
       const latestCount = await fetchTickets(accessToken)
       if (latestCount !== null && latestCount < requiredTickets) {
         setShowTicketModal(true)
         return
       }
     } else if (ticketCount === null) {
-      setStatusMessage('チケットを確認中...')
+      setStatusMessage('クレジットを確認中...')
       return
     } else if (ticketCount < requiredTickets) {
       setShowTicketModal(true)
@@ -532,7 +524,7 @@ export function Video() {
     try {
       await saveGeneratedAsset({
         source: displayVideo,
-        filenamePrefix: 'doobleai-video',
+        filenamePrefix: 'meltplus-video',
         fallbackExtension: isGif ? 'gif' : 'mp4',
       })
     } finally {
@@ -549,30 +541,25 @@ export function Video() {
     )
   }
 
+  if (!session) {
+    return <GuestLanding />
+  }
+
   return (
     <div className="studio-page">
       <TopNav />
       <main className="studio-wrap">
         <section className="studio-panel studio-panel--controls">
           <header className="studio-heading">
-            <h1>画像から動画を生成</h1>
-            <p>参照画像とプロンプトからi2v動画を作成します。</p>
+            <h1>I2V Video Studio</h1>
+            <p>1枚の画像から6秒動画を生成します。</p>
           </header>
 
           <p className="studio-token-line">
-            Token:
-            <strong className="studio-token-value">
-              {session ? ticketCount ?? 0 : '--'}
-              <span className="studio-token-icon" aria-hidden="true">
-                👑
-              </span>
-            </strong>
+            クレジット残高:
+            <strong className="studio-token-value">{session ? ticketCount ?? 0 : '--'}</strong>
+            <span className="studio-token-cost">{`消費: ${requiredTickets}クレジット`}</span>
           </p>
-          <div className="studio-ticket-row">
-            <span className="studio-ticket-label">今回の設定</span>
-            <strong className="studio-ticket-value">{`${selectedVideoLength.seconds}秒`}</strong>
-            <span className="studio-ticket-cost">{`消費 ${requiredTickets}トークン`}</span>
-          </div>
 
           {ticketStatus === 'error' && ticketMessage && <p className="studio-inline-error">{ticketMessage}</p>}
 
@@ -598,55 +585,37 @@ export function Video() {
           <section className="studio-section">
             <h3 className="studio-section-title">モーション指示</h3>
             <label className="studio-field">
-              <span>プロンプト</span>
+              <span>呪文</span>
               <textarea
                 rows={4}
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder="例: 女性がペンを咥え、カメラがゆっくり寄る"
+                placeholder="例: 被写体が自然に瞬きし、カメラがゆっくり前進する"
               />
             </label>
 
-            <div className="studio-duration-row">
-              <span>動画の長さ</span>
-              <div className="studio-duration-options" role="radiogroup" aria-label="動画の長さ">
-                {VIDEO_LENGTH_OPTIONS.map((option) => (
-                  <button
-                    key={option.seconds}
-                    type="button"
-                    role="radio"
-                    aria-checked={videoLengthSeconds === option.seconds}
-                    className={`studio-duration-option${videoLengthSeconds === option.seconds ? ' is-active' : ''}`}
-                    onClick={() => setVideoLengthSeconds(option.seconds)}
-                    disabled={isRunning}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             <div className="studio-toggle-row">
-              <span>品質タグ(有効にすると高画質化タグを内部で埋め込みます)</span>
+              <span>おまじない呪文</span>
               <button
                 type="button"
                 role="switch"
-                aria-checked={qualityTagsEnabled}
-                className={`studio-switch${qualityTagsEnabled ? ' is-on' : ''}`}
-                onClick={() => setQualityTagsEnabled((prev) => !prev)}
-                aria-label="品質タグを有効化"
+                aria-checked={magicPromptEnabled}
+                className={`studio-switch${magicPromptEnabled ? ' is-on' : ''}`}
+                onClick={() => setMagicPromptEnabled((prev) => !prev)}
+                aria-label="おまじない呪文の切り替え"
               >
                 <span className="studio-switch-thumb" />
               </button>
             </div>
+            <small className="studio-field-note">おまじない呪文とは？ 画質や動作に関する定番プロンプトを自動で埋め込みます</small>
 
             <label className="studio-field">
-              <span>除外したい要素(任意)</span>
+              <span>マイナス呪文</span>
               <textarea
                 rows={3}
                 value={negativePrompt}
                 onChange={(e) => setNegativePrompt(e.target.value)}
-                placeholder="崩れ、ノイズ、低品質"
+                placeholder="例: 手の破綻、背景の揺れ、ちらつき、ノイズ"
               />
             </label>
           </section>
@@ -668,18 +637,18 @@ export function Video() {
 
         <section className="studio-panel studio-panel--preview">
           <div className="studio-preview-head">
-            <h2>生成結果</h2>
+            <h2>プレビュー</h2>
           </div>
 
-          <div className={`studio-canvas${showGuestPromo ? ' is-guest' : ''}`} style={viewerStyle}>
+          <div className="studio-canvas" style={viewerStyle}>
             {isRunning ? (
               <div className="studio-loading" role="status" aria-live="polite">
                 <div className="studio-loading__halo" aria-hidden="true">
                   <div className="studio-loading__core" />
                   <div className="studio-spinner" />
                 </div>
-                <p className="studio-loading__title">動画を生成しています</p>
-                <p className="studio-loading__subtitle">モデル起動とフレーム生成を実行中です。しばらくお待ちください。</p>
+                <p className="studio-loading__title">プレビューを準備しています</p>
+                <p className="studio-loading__subtitle">フレームを生成中です。完了までしばらくお待ちください。</p>
                 <div className="studio-loading__steps" aria-hidden="true">
                   <span />
                   <span />
@@ -698,52 +667,19 @@ export function Video() {
                 </button>
                 {isGif ? <img src={displayVideo} alt="Generated video" /> : <video controls src={displayVideo} />}
               </div>
-
-            ) : showGuestPromo ? (
-              <section className="studio-guest-promo" aria-label="サービス紹介">
-                <div className="studio-guest-promo__header">
-                  <h3>画像を1枚アップするだけで、すぐに動画にできます</h3>
-                  <p>アップロードした画像と短い指示文だけで、理想の動画が作れます。</p>
-                </div>
-                <div className="studio-guest-promo__grid">
-                  <figure className="studio-guest-promo__card">
-                    <figcaption>元画像</figcaption>
-                    <img src={GUEST_PROMO_IMAGE} alt="動画化の元画像サンプル" loading="lazy" />
-                  </figure>
-                  <figure className="studio-guest-promo__card">
-                    <figcaption>生成サンプル</figcaption>
-                    <video src={GUEST_PROMO_VIDEO} controls playsInline preload="metadata" poster={GUEST_PROMO_IMAGE} />
-                  </figure>
-                </div>
-                <div className="studio-guest-promo__prompt">{`プロンプト例: 「${GUEST_PROMPT_EXAMPLE}」`}</div>
-                <ul className="studio-guest-promo__highlights">
-                  <li>動画生成は5秒・7秒・9秒から選べる</li>
-                  <li>圧倒的高画質</li>
-                  <li>独自開発した最先端モデル</li>
-                </ul>
-              </section>
             ) : (
-              <div className="studio-empty">生成結果はここに表示されます。</div>
+              <div className="studio-empty">プレビューはここに表示されます。</div>
             )}
           </div>
           {statusMessage && <p className="studio-status studio-status--preview">{statusMessage}</p>}
         </section>
-
-        <nav className="studio-legal-links" aria-label="リーガルリンク">
-          <Link className="studio-legal-links__item" to="/terms">
-            利用規約
-          </Link>
-          <Link className="studio-legal-links__item" to="/tokushoho">
-            特商法
-          </Link>
-        </nav>
       </main>
 
       {showTicketModal && (
         <div className="studio-modal-overlay" role="dialog" aria-modal="true">
           <div className="studio-modal-card">
-            <h3>チケット不足</h3>
-            <p>{`この設定ではチケット${requiredTickets}枚が必要です。購入ページで追加してください。`}</p>
+            <h3>クレジット不足</h3>
+            <p>{`この設定ではクレジット${requiredTickets}枚が必要です。購入ページで追加してください。`}</p>
             <div className="studio-modal-actions">
               <button type="button" className="studio-btn studio-btn--ghost" onClick={() => setShowTicketModal(false)}>
                 閉じる

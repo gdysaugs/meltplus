@@ -7,8 +7,10 @@ export type PurchasePlan = {
 }
 
 export const PURCHASE_PLANS: PurchasePlan[] = [
-  { id: 'starter', label: 'Starter', price: 480, tickets: 25, priceId: 'price_1TCz5nA9KcmC9XImyo6sNLGa' },
-  { id: 'basic', label: 'Basic', price: 1500, tickets: 80, priceId: 'price_1TCz67A9KcmC9XImBOK1rmiV' },
-  { id: 'plus', label: 'Plus', price: 4000, tickets: 220, priceId: 'price_1TCz6MA9KcmC9XImMNMlFeGO' },
-  { id: 'pro', label: 'Pro', price: 15000, tickets: 900, priceId: 'price_1TCz6iA9KcmC9XImkYYhJeQR' },
+  { id: 'starter', label: 'Starter', price: 550, tickets: 30, priceId: 'price_1TEr9NAVfITDQlasv8ihyh8x' },
+  { id: 'basic', label: 'Basic', price: 1440, tickets: 80, priceId: 'price_1TEr9bAVfITDQlaslyNuz3SC' },
+  { id: 'standard', label: 'Standard', price: 2800, tickets: 160, priceId: 'price_1TEr9pAVfITDQlasrgQspVXr' },
+  { id: 'plus', label: 'Plus', price: 4760, tickets: 280, priceId: 'price_1TErAKAVfITDQlasTRAEkoHO' },
+  { id: 'pro', label: 'Pro', price: 8250, tickets: 500, priceId: 'price_1TErAaAVfITDQlasH5ggQot9' },
+  { id: 'ultra', label: 'Ultra', price: 16000, tickets: 1000, priceId: 'price_1TErApAVfITDQlas4PgUgN6i' },
 ]

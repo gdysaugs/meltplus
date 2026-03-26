@@ -3,10 +3,10 @@ type CorsEnv = {
 }
 
 const DEFAULT_ALLOWED_ORIGINS = [
-  'https://aidooble.org',
-  'https://www.aidooble.org',
-  'https://dooble.pages.dev',
-  '*.dooble.pages.dev',
+  'https://meltplus.win',
+  'https://www.meltplus.win',
+  'https://meltplus.pages.dev',
+  '*.meltplus.pages.dev',
 ]
 
 const normalize = (value: string) => value.trim().toLowerCase()

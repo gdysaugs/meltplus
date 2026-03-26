@@ -5,12 +5,12 @@ import './legal.css'
 
 export function Terms() {
   return (
-    <div className="camera-app">
-      <TopNav />
+    <div className="camera-app legal-page">
+      <TopNav hideGuestAuthButton />
       <main className="legal-shell">
         <section className="legal-card">
           <h1>利用規約</h1>
-          <p>本規約は、DoobleAI（以下「当サービス」）の利用条件を定めるものです。</p>
+          <p>本規約は、MeltPlus（以下「当サービス」）の利用条件を定めるものです。</p>
 
           <h2>第1条（適用）</h2>
           <p>本規約は、当サービスの利用に関する一切の関係に適用されます。</p>
@@ -46,10 +46,7 @@ export function Terms() {
           <p>本規約は日本法に準拠し、紛争が生じた場合は日本の裁判所を専属的合意管轄とします。</p>
 
           <div className="legal-links">
-            <Link className="legal-link" to="/tokushoho">
-              特商法ページ
-            </Link>
-            <Link className="legal-link" to="/video">
+            <Link className="legal-link" to="/">
               生成ページへ戻る
             </Link>
           </div>

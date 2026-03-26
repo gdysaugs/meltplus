@@ -8,8 +8,8 @@ import './purchase.css'
 
 const OAUTH_REDIRECT_URL =
   import.meta.env.VITE_SUPABASE_REDIRECT_URL ?? (typeof window !== 'undefined' ? window.location.origin : undefined)
-const DAILY_BONUS_COOLDOWN_HOURS = 12
-const DAILY_BONUS_AMOUNT = 1
+const DAILY_BONUS_COOLDOWN_HOURS = 24
+const DAILY_BONUS_AMOUNT = 3
 
 const formatRemaining = (targetIso: string | null) => {
   if (!targetIso) return ''
@@ -17,10 +17,10 @@ const formatRemaining = (targetIso: string | null) => {
   if (!Number.isFinite(target)) return ''
   const diff = target - Date.now()
   if (diff <= 0) return ''
-  const hours = Math.floor(diff / 3_600_000)
-  const minutes = Math.floor((diff % 3_600_000) / 60_000)
-  const seconds = Math.floor((diff % 60_000) / 1000)
-  return `${hours}時間${minutes.toString().padStart(2, '0')}分${seconds.toString().padStart(2, '0')}秒`
+  const totalMinutes = Math.ceil(diff / 60_000)
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  return `約${hours}時間${minutes}分`
 }
 
 const normalizeErrorMessage = (value: unknown) => {
@@ -98,7 +98,7 @@ export function Purchase() {
     const data = await res.json().catch(() => ({}))
     if (!res.ok) {
       setTicketStatus('error')
-      setTicketMessage(data?.error || 'トークン取得に失敗しました。')
+      setTicketMessage(data?.error || 'クレジット取得に失敗しました。')
       setTicketCount(null)
       return
     }
@@ -266,7 +266,7 @@ export function Purchase() {
         return
       }
       if (data?.granted) {
-        setDailyClaimStatus('無料トークンを付与しました。')
+        setDailyClaimStatus('無料クレジットを付与しました。')
         void fetchTickets(accessToken)
         setDailyCanClaim(false)
         setDailyNextEligibleAt(data?.next_eligible_at ? String(data.next_eligible_at) : null)
@@ -295,19 +295,6 @@ export function Purchase() {
     <div className="camera-app purchase-app purchase-page">
       <TopNav />
       <main className="token-lab">
-        <section className="token-hero">
-          <div className="token-hero__intro">
-            <p className="token-hero__eyebrow">TOKEN STATION</p>
-            <h1>トークン管理と購入</h1>
-            <p>制作ペースに合わせて補充。無料トークンは12時間ごとに1枚受け取れます。</p>
-          </div>
-          <div className="token-balance-card">
-            <span className="token-balance-card__label">現在の残高</span>
-            <strong>{session ? `${ticketCount ?? 0}` : '--'}</strong>
-            <small>{session ? 'tokens' : 'ログインで表示'}</small>
-          </div>
-        </section>
-
         <section className="token-layout">
           <article className="token-card token-card--account">
             <div className="token-card__head">
@@ -334,7 +321,7 @@ export function Purchase() {
               </div>
             ) : (
               <div className="token-auth-row">
-                <p className="token-auth-lead">購入と無料トークン受け取りにはログインが必要です。</p>
+                <p className="token-auth-lead">購入と無料クレジット受け取りにはログインが必要です。</p>
                 <button
                   type="button"
                   className="token-button token-button--primary"
@@ -350,8 +337,8 @@ export function Purchase() {
 
             {session && (
               <p className={`token-inline-message ${ticketStatus === 'error' ? 'token-inline-message--error' : ''}`}>
-                {ticketStatus === 'loading' && 'トークン確認中...'}
-                {ticketStatus !== 'loading' && `トークン残り: ${ticketCount ?? 0}`}
+                {ticketStatus === 'loading' && 'クレジット確認中...'}
+                {ticketStatus !== 'loading' && `クレジット残り: ${ticketCount ?? 0}`}
                 {ticketStatus === 'error' && ticketMessage ? ` / ${ticketMessage}` : ''}
               </p>
             )}
@@ -361,7 +348,7 @@ export function Purchase() {
                 <div className="token-bonus-card__head">
                   <div>
                     <p className="token-card__kicker">Free Bonus</p>
-                    <h3>{`無料トークン（${DAILY_BONUS_COOLDOWN_HOURS}時間ごとに${DAILY_BONUS_AMOUNT}枚）`}</h3>
+                    <h3>{`無料クレジット（${DAILY_BONUS_COOLDOWN_HOURS}時間ごとに${DAILY_BONUS_AMOUNT}枚）`}</h3>
                   </div>
                   <span className={`token-bonus-state ${dailyCanClaim ? 'is-ready' : ''}`}>{dailyBonusHint}</span>
                 </div>
@@ -384,7 +371,7 @@ export function Purchase() {
             <div className="token-card__head">
               <div>
                 <p className="token-card__kicker">Store</p>
-                <h2>トークンプラン</h2>
+                <h2>クレジットプラン</h2>
               </div>
               <span className="token-pill">Stripe 決済</span>
             </div>
@@ -404,7 +391,7 @@ export function Purchase() {
                     </div>
                     <div className="token-plan__tokens">
                       {plan.tickets}
-                      <small> tokens</small>
+                      <small> credits</small>
                     </div>
                     <div className="token-plan__price-row">
                       <div className="token-plan__price">¥{plan.price.toLocaleString()}</div>

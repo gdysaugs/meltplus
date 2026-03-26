@@ -8,11 +8,13 @@ type Env = {
   STRIPE_SIGNING_SECRET?: string
 }
 
-const DOOBLE_PRICE_MAP = new Map([
-  ['price_1TCz5nA9KcmC9XImyo6sNLGa', { label: 'Starter', tickets: 25 }],
-  ['price_1TCz67A9KcmC9XImBOK1rmiV', { label: 'Basic', tickets: 80 }],
-  ['price_1TCz6MA9KcmC9XImMNMlFeGO', { label: 'Plus', tickets: 220 }],
-  ['price_1TCz6iA9KcmC9XImkYYhJeQR', { label: 'Pro', tickets: 900 }],
+const PRICE_MAP = new Map([
+  ['price_1TEr9NAVfITDQlasv8ihyh8x', { label: 'Starter', tickets: 30 }],
+  ['price_1TEr9bAVfITDQlaslyNuz3SC', { label: 'Basic', tickets: 80 }],
+  ['price_1TEr9pAVfITDQlasrgQspVXr', { label: 'Standard', tickets: 160 }],
+  ['price_1TErAKAVfITDQlasTRAEkoHO', { label: 'Plus', tickets: 280 }],
+  ['price_1TErAaAVfITDQlasH5ggQot9', { label: 'Pro', tickets: 500 }],
+  ['price_1TErApAVfITDQlas4PgUgN6i', { label: 'Ultra', tickets: 1000 }],
 ])
 
 const corsHeaders = {
@@ -110,12 +112,12 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   }
 
   const appTag = String(session.metadata?.app ?? '')
-  if (appTag !== 'dooble') {
+  if (appTag !== 'meltplus') {
     return jsonResponse({ received: true })
   }
 
   const priceId = String(session.metadata?.price_id ?? '')
-  const plan = DOOBLE_PRICE_MAP.get(priceId)
+  const plan = PRICE_MAP.get(priceId)
   if (!priceId || !plan) {
     return jsonResponse({ received: true })
   }

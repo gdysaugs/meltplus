@@ -1,8 +1,8 @@
-# dooble
+# meltplus
 
 AI video app (I2V / Animate) running on **Cloudflare Pages + Pages Functions**.
 
-Official URL: https://aidooble.org
+Official URL: https://meltplus.win
 
 ## Architecture
 
@@ -45,7 +45,7 @@ dist
 
 Deploy example:
 ```bash
-npx wrangler pages deploy dist --project-name dooble --branch main
+npx wrangler pages deploy dist --project-name meltplus --branch main
 ```
 
 ## Required Pages Environment Variables
