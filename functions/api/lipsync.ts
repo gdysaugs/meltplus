@@ -10,7 +10,7 @@ type Env = {
 }
 
 const corsMethods = 'POST, GET, OPTIONS'
-const MAX_TEXT_LENGTH = 100
+const MAX_TEXT_LENGTH = 50
 const MAX_VIDEO_BYTES = 6 * 1024 * 1024
 const ALLOWED_ENHANCERS = new Set(['none', 'gpen', 'gfpgan', 'codeformer', 'restoreformer'])
 const SIGNUP_TICKET_GRANT = 5

@@ -401,7 +401,7 @@ export function LipSync() {
               onChange={(event) => setLineText(event.target.value)}
               placeholder="ここに喋らせたいセリフを入力"
               rows={5}
-              maxLength={100}
+              maxLength={50}
               disabled={isRunning}
             />
           </label>
@@ -424,10 +424,13 @@ export function LipSync() {
 
           <div className="lipsync-aivis-grid">
             <label className="lipsync-field">
-              <span className="lipsync-label">{'\u8a71\u901f'}</span>
+              <div className="lipsync-slider-head">
+                <span className="lipsync-label">{'\u8a71\u901f'}</span>
+                <span className="lipsync-slider-value">{aivisSpeedScale.toFixed(2)}</span>
+              </div>
               <input
-                className="lipsync-input"
-                type="number"
+                className="lipsync-slider"
+                type="range"
                 min={0.5}
                 max={2}
                 step={0.05}
@@ -442,10 +445,13 @@ export function LipSync() {
             </label>
 
             <label className="lipsync-field">
-              <span className="lipsync-label">{'\u30d4\u30c3\u30c1'}</span>
+              <div className="lipsync-slider-head">
+                <span className="lipsync-label">{'\u30d4\u30c3\u30c1'}</span>
+                <span className="lipsync-slider-value">{aivisPitchScale.toFixed(2)}</span>
+              </div>
               <input
-                className="lipsync-input"
-                type="number"
+                className="lipsync-slider"
+                type="range"
                 min={-0.15}
                 max={0.15}
                 step={0.01}
@@ -460,10 +466,13 @@ export function LipSync() {
             </label>
 
             <label className="lipsync-field">
-              <span className="lipsync-label">{'\u6291\u63da'}</span>
+              <div className="lipsync-slider-head">
+                <span className="lipsync-label">{'\u6291\u63da'}</span>
+                <span className="lipsync-slider-value">{aivisIntonationScale.toFixed(2)}</span>
+              </div>
               <input
-                className="lipsync-input"
-                type="number"
+                className="lipsync-slider"
+                type="range"
                 min={0}
                 max={2}
                 step={0.05}
