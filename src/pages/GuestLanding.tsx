@@ -78,7 +78,7 @@ export function GuestLanding() {
               <li>6秒動画を簡単に生成</li>
               <li>ブラウザだけで完結</li>
               <li>MeltAIをベースにした独自モデル搭載</li>
-              <li>{'\u9ad8\u7cbe\u5ea6\u65e5\u672c\u8a9e\u30ea\u30c3\u30d7\u30b7\u30f3\u30af\u306b\u5bfe\u5fdc'}</li>
+              <li>動画に合わせた効果音生成に対応</li>
               <li>無料登録で5回生成無料</li>
               <li>毎日3回分のボーナス提供</li>
             </ul>
@@ -95,43 +95,9 @@ export function GuestLanding() {
                   <p>短尺で使いやすい6秒固定。SNS投稿や広告クリエイティブの試作にも最適です。</p>
                 </article>
                 <article className="guest-home__capability-card">
-                  <h3>{'\u9ad8\u7cbe\u5ea6\u65e5\u672c\u8a9e\u30ea\u30c3\u30d7\u30b7\u30f3\u30af'}</h3>
-                  <p>{'\u65e5\u672c\u8a9e\u30c6\u30ad\u30b9\u30c8\u304b\u3089\u81ea\u7136\u306a\u53e3\u30d1\u30af\u52d5\u753b\u3092\u751f\u6210\u3067\u304d\u307e\u3059\u3002'}</p>
+                  <h3>Soundで効果音付き動画に</h3>
+                  <p>動画と短い指示から、環境音や動作音を加えた音声付き動画を作成できます。</p>
                 </article>
-              </div>
-
-              <div className="guest-home__lipsync-block">
-                <div className="guest-home__lipsync-head">
-                  <h3>世界最先端の日本語リップシンク</h3>
-                  <p>高精度日本語リップシンクを好きなセリフで可能。8種類の音声モデルから選べて、話速・抑揚・ピッチも自由に変えられる世界最高水準の技術です。</p>
-                </div>
-                <ul className="guest-home__lipsync-points">
-                  <li>好きなセリフを入力するだけで自然な口パク動画を生成</li>
-                  <li>8種類の音声モデルを切り替え可能</li>
-                  <li>話速・抑揚・ピッチを調整してイメージに合わせられる</li>
-                </ul>
-                <div className="guest-home__lipsync-video-grid">
-                  <figure className="guest-home__lipsync-video-card">
-                    <video
-                      src="/media/lipsync-sample-a.mp4"
-                      controls
-                      preload="auto"
-                      playsInline
-                      poster="/media/meltplus-hero.png"
-                    />
-                    <figcaption>参考動画 1</figcaption>
-                  </figure>
-                  <figure className="guest-home__lipsync-video-card">
-                    <video
-                      src="/media/lipsync-sample-b.mp4"
-                      controls
-                      preload="auto"
-                      playsInline
-                      poster="/media/meltplus-hero.png"
-                    />
-                    <figcaption>参考動画 2</figcaption>
-                  </figure>
-                </div>
               </div>
 
               <div className="guest-home__fashion-block">
@@ -187,9 +153,9 @@ export function GuestLanding() {
                         <td>MeltAIより約10〜20秒短縮</td>
                       </tr>
                       <tr>
-                        <td>{'\u30ea\u30c3\u30d7\u30b7\u30f3\u30af\u6a5f\u80fd'}</td>
-                        <td>{'\u306a\u3057'}</td>
-                        <td>{'\u3042\u308a\uff08\u9ad8\u7cbe\u5ea6\u65e5\u672c\u8a9e\u5bfe\u5fdc\uff09'}</td>
+                        <td>Sound</td>
+                        <td>なし</td>
+                        <td>動画に合わせた効果音生成に対応</td>
                       </tr>
                     </tbody>
                   </table>

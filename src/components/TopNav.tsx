@@ -180,8 +180,8 @@ export function TopNav({ hideGuestAuthButton = false }: TopNavProps = {}) {
           <NavLink to="/image" className={({ isActive }) => `top-nav__link${isActive ? ' is-active' : ''}`}>
             I2I
           </NavLink>
-          <NavLink to="/lip" className={({ isActive }) => `top-nav__link${isActive ? ' is-active' : ''}`}>
-            LipSync
+          <NavLink to="/sound" className={({ isActive }) => `top-nav__link${isActive ? ' is-active' : ''}`}>
+            Sound
           </NavLink>
           <NavLink to="/purchase" className={({ isActive }) => `top-nav__link${isActive ? ' is-active' : ''}`}>
             {'\u30b9\u30c8\u30a2'}

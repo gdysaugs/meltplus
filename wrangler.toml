@@ -2,7 +2,3 @@ name = "meltplus"
 pages_build_output_dir = "dist"
 compatibility_date = "2026-03-17"
 compatibility_flags = ["nodejs_compat"]
-
-[vars]
-RUNPOD_WAV2LIP_ENDPOINT_URL = "https://api.runpod.ai/v2/p7olio02jkt1m3"
-RUNPOD_AIVIS_ENDPOINT_URL = "https://api.runpod.ai/v2/08xrp6adumepo9"

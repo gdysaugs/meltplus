@@ -9,7 +9,7 @@ import { Terms } from './pages/Terms'
 import { Tokushoho } from './pages/Tokushoho'
 import { Video } from './pages/Video'
 import { VideoActive } from './pages/VideoActive'
-import { LipSync } from './pages/LipSync'
+import { Sound } from './pages/Sound'
 
 function useAuthState() {
   const [session, setSession] = useState<Session | null>(null)
@@ -60,7 +60,7 @@ export function App() {
       <Route path="/video" element={<AuthRouteGate><Video /></AuthRouteGate>} />
       <Route path="/video-active" element={<AuthRouteGate><VideoActive /></AuthRouteGate>} />
       <Route path="/t2v" element={<Navigate to="/video" replace />} />
-      <Route path="/lip" element={<AuthRouteGate><LipSync /></AuthRouteGate>} />
+      <Route path="/sound" element={<AuthRouteGate><Sound /></AuthRouteGate>} />
       <Route path="/image" element={<AuthRouteGate><Image /></AuthRouteGate>} />
       <Route path="/purchase" element={<AuthRouteGate><Purchase /></AuthRouteGate>} />
       <Route path="/account" element={<AuthRouteGate><Account /></AuthRouteGate>} />
