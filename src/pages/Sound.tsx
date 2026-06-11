@@ -406,6 +406,13 @@ export function Sound() {
         pipelineUsageId = polled.pipelineUsageId || pipelineUsageId
       }
 
+      if (audioMode === 'mode2') {
+        if (runIdRef.current !== runId) return
+        setResultVideo(audioVideo)
+        setStatusMessage('生成が完了しました。')
+        return
+      }
+
       setStatusMessage('音声付き動画を生成しています')
       const muxedVideo = await muxWithOriginalVideo(audioVideo, pipelineUsageId, accessToken, audioMode)
       if (runIdRef.current !== runId) return
