@@ -551,16 +551,16 @@ export function Sound() {
                 </div>
               </div>
             ) : resultVideo ? (
-              <video className="studio-result-media" src={resultVideo} controls />
+              <div className="studio-result-media">
+                <a className="studio-save-btn sound-download" href={resultVideo} download="meltplus-audio-video.mp4">
+                  保存
+                </a>
+                <video src={resultVideo} controls />
+              </div>
             ) : (
               <div className="studio-empty">生成結果はここに表示されます。</div>
             )}
           </div>
-          {resultVideo ? (
-            <a className="studio-save-btn sound-download" href={resultVideo} download="meltplus-audio-video.mp4">
-              保存
-            </a>
-          ) : null}
         </section>
       </main>
     </div>
