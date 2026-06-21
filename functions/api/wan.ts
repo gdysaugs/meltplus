@@ -76,6 +76,11 @@ const MAX_DIMENSION = 3000
 const MIN_CFG = 0
 const MAX_CFG = 10
 const FIXED_FPS = 10
+const VIDEO_SIZE_MULTIPLE = 16
+const LANDSCAPE_MAX = { width: 640, height: 464 } as const
+const PORTRAIT_MAX = { width: 464, height: 640 } as const
+const DEFAULT_WIDTH = LANDSCAPE_MAX.width
+const DEFAULT_HEIGHT = LANDSCAPE_MAX.height
 // Wan i2v length is most stable with 4n+1 frames.
 const VIDEO_DURATION_OPTIONS = [
   { seconds: 6, frames: 63, ticketCost: 1 },
@@ -121,6 +126,30 @@ const resolveVideoDurationFromInput = (secondsRaw: unknown) => {
   }
 
   return { option, error: null as string | null }
+}
+
+const clampVideoDimension = (value: number, maxSize: number) => {
+  const rounded = Math.round(value / VIDEO_SIZE_MULTIPLE) * VIDEO_SIZE_MULTIPLE
+  return Math.max(VIDEO_SIZE_MULTIPLE, Math.min(maxSize, rounded))
+}
+
+const toSafeVideoDimensions = (width: number, height: number) => {
+  const isPortrait = height >= width
+  const bounds = isPortrait ? PORTRAIT_MAX : LANDSCAPE_MAX
+  const scale = Math.min(1, bounds.width / width, bounds.height / height)
+  const scaledWidth = width * scale
+  const scaledHeight = height * scale
+  const aspect = width / height
+
+  if (aspect >= 1) {
+    const targetWidth = clampVideoDimension(scaledWidth, bounds.width)
+    const targetHeight = clampVideoDimension(targetWidth / aspect, bounds.height)
+    return { width: targetWidth, height: targetHeight }
+  }
+
+  const targetHeight = clampVideoDimension(scaledHeight, bounds.height)
+  const targetWidth = clampVideoDimension(targetHeight * aspect, bounds.width)
+  return { width: targetWidth, height: targetHeight }
 }
 
 const parseTicketMetadata = (value: unknown) => {
@@ -888,8 +917,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   const negativePrompt = String(input?.negative_prompt ?? input?.negative ?? '')
   const steps = isAnimate ? FIXED_STEPS_ANIMATE : FIXED_STEPS
   const cfg = 1
-  const width = Math.floor(Number(input?.width ?? 832))
-  const height = Math.floor(Number(input?.height ?? 576))
+  const requestedWidth = Math.floor(Number(input?.width ?? DEFAULT_WIDTH))
+  const requestedHeight = Math.floor(Number(input?.height ?? DEFAULT_HEIGHT))
   const fps = FIXED_FPS
   const numFrames = isAnimate
     ? Math.max(1, Math.floor(Number(input?.num_frames ?? FIXED_ANIMATE_FRAMES)))
@@ -909,20 +938,23 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   if (!Number.isFinite(cfg) || cfg < MIN_CFG || cfg > MAX_CFG) {
     return jsonResponse({ error: `cfg must be between ${MIN_CFG} and ${MAX_CFG}.` }, 400, corsHeaders)
   }
-  if (!Number.isFinite(width) || width < MIN_DIMENSION || width > MAX_DIMENSION) {
+  if (!Number.isFinite(requestedWidth) || requestedWidth < MIN_DIMENSION || requestedWidth > MAX_DIMENSION) {
     return jsonResponse(
       { error: `width must be between ${MIN_DIMENSION} and ${MAX_DIMENSION}.` },
       400,
       corsHeaders,
     )
   }
-  if (!Number.isFinite(height) || height < MIN_DIMENSION || height > MAX_DIMENSION) {
+  if (!Number.isFinite(requestedHeight) || requestedHeight < MIN_DIMENSION || requestedHeight > MAX_DIMENSION) {
     return jsonResponse(
       { error: `height must be between ${MIN_DIMENSION} and ${MAX_DIMENSION}.` },
       400,
       corsHeaders,
     )
   }
+  const { width, height } = isAnimate
+    ? { width: requestedWidth, height: requestedHeight }
+    : toSafeVideoDimensions(requestedWidth, requestedHeight)
   const totalSteps = Math.max(1, Math.floor(steps))
   const splitStep = Math.max(1, Math.floor(totalSteps / 2))
 
