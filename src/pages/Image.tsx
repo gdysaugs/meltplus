@@ -28,6 +28,7 @@ const IMAGE_TICKET_COST = 1
 const FIXED_STEPS = 4
 const FIXED_CFG = 1
 const FIXED_ANGLE_STRENGTH = 0
+const I2I_MAX_DIMENSION = 768
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -180,7 +181,8 @@ const fitWithinBounds = (width: number, height: number, maxWidth: number, maxHei
   return { width: targetWidth, height: targetHeight }
 }
 
-const getTargetSize = (width: number, height: number) => fitWithinBounds(width, height, 1024, 1024)
+const getTargetSize = (width: number, height: number) =>
+  fitWithinBounds(width, height, I2I_MAX_DIMENSION, I2I_MAX_DIMENSION)
 
 const buildPaddedDataUrl = (img: HTMLImageElement, targetWidth: number, targetHeight: number) => {
   const canvas = document.createElement('canvas')
@@ -199,8 +201,8 @@ export function Image() {
   const [prompt, setPrompt] = useState('')
   const [magicPromptEnabled, setMagicPromptEnabled] = useState(true)
   const [negativePrompt, setNegativePrompt] = useState('')
-  const [width, setWidth] = useState(1024)
-  const [height, setHeight] = useState(1024)
+  const [width, setWidth] = useState(I2I_MAX_DIMENSION)
+  const [height, setHeight] = useState(I2I_MAX_DIMENSION)
   const [result, setResult] = useState<RenderResult | null>(null)
   const [statusMessage, setStatusMessage] = useState('')
   const [isRunning, setIsRunning] = useState(false)
@@ -528,7 +530,7 @@ export function Image() {
               <input type="file" accept="image/*" onChange={handleFileChange} />
               <div className="studio-upload-inner">
                 <strong>{sourceName || '元画像をアップロード'}</strong>
-                <span>推奨: 1024x1024以内</span>
+                <span>推奨: 768x768以内</span>
               </div>
             </label>
 
