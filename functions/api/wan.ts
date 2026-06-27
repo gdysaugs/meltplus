@@ -77,8 +77,8 @@ const MIN_CFG = 0
 const MAX_CFG = 10
 const FIXED_FPS = 10
 const VIDEO_SIZE_MULTIPLE = 16
-const LANDSCAPE_MAX = { width: 640, height: 464 } as const
-const PORTRAIT_MAX = { width: 464, height: 640 } as const
+const LANDSCAPE_MAX = { width: 720, height: 512 } as const
+const PORTRAIT_MAX = { width: 512, height: 720 } as const
 const DEFAULT_WIDTH = LANDSCAPE_MAX.width
 const DEFAULT_HEIGHT = LANDSCAPE_MAX.height
 // Wan i2v length is most stable with 4n+1 frames.

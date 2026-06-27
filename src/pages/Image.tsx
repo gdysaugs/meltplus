@@ -28,7 +28,7 @@ const IMAGE_TICKET_COST = 1
 const FIXED_STEPS = 4
 const FIXED_CFG = 1
 const FIXED_ANGLE_STRENGTH = 0
-const I2I_MAX_DIMENSION = 768
+const I2I_MAX_DIMENSION = 1024
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -530,7 +530,7 @@ export function Image() {
               <input type="file" accept="image/*" onChange={handleFileChange} />
               <div className="studio-upload-inner">
                 <strong>{sourceName || '元画像をアップロード'}</strong>
-                <span>推奨: 768x768以内</span>
+                <span>推奨: 1024x1024以内</span>
               </div>
             </label>
 

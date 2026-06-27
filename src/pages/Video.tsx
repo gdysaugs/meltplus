@@ -146,8 +146,8 @@ const isFailureStatus = (status: string) => {
 const extractJobId = (payload: any) => payload?.id || payload?.jobId || payload?.job_id || payload?.output?.id
 
 const alignTo16 = (value: number) => Math.max(16, Math.round(value / 16) * 16)
-const PORTRAIT_MAX = { width: 464, height: 640 }
-const LANDSCAPE_MAX = { width: 640, height: 464 }
+const PORTRAIT_MAX = { width: 512, height: 720 }
+const LANDSCAPE_MAX = { width: 720, height: 512 }
 
 const fitWithinBounds = (width: number, height: number, maxWidth: number, maxHeight: number) => {
   const scale = Math.min(1, maxWidth / width, maxHeight / height)
