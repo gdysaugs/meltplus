@@ -9,12 +9,12 @@ type Env = {
 }
 
 const PRICE_MAP = new Map([
-  ['price_1TEr9NAVfITDQlasv8ihyh8x', { label: 'Starter', tickets: 30 }],
-  ['price_1TEr9bAVfITDQlaslyNuz3SC', { label: 'Basic', tickets: 80 }],
-  ['price_1TEr9pAVfITDQlasrgQspVXr', { label: 'Standard', tickets: 160 }],
-  ['price_1TErAKAVfITDQlasTRAEkoHO', { label: 'Plus', tickets: 280 }],
-  ['price_1TErAaAVfITDQlasH5ggQot9', { label: 'Pro', tickets: 500 }],
-  ['price_1TErApAVfITDQlas4PgUgN6i', { label: 'Ultra', tickets: 1000 }],
+  ['price_1TrWsyA2idukkEyjbpc6MHlb', { label: 'Starter', tickets: 30 }],
+  ['price_1TrWtAA2idukkEyjsOqXrOaZ', { label: 'Basic', tickets: 80 }],
+  ['price_1TrWtSA2idukkEyjpZRjdHeR', { label: 'Standard', tickets: 160 }],
+  ['price_1TrWwJA2idukkEyjZZ8fLVk7', { label: 'Plus', tickets: 280 }],
+  ['price_1TrWwZA2idukkEyjAry8u0Ku', { label: 'Pro', tickets: 500 }],
+  ['price_1TrWwoA2idukkEyjEs8qkFLY', { label: 'Ultra', tickets: 1000 }],
 ])
 
 const corsHeaders = {
