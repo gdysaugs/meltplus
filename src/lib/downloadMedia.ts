@@ -4,6 +4,17 @@ type SaveGeneratedAssetOptions = {
   fallbackExtension: string
 }
 
+type PrepareGeneratedAssetOptions = {
+  source: string
+  fallbackExtension: string
+}
+
+export type PreparedGeneratedAsset = {
+  url: string
+  extension: string
+  release: () => void
+}
+
 const MIME_EXTENSION_MAP: Record<string, string> = {
   'image/png': 'png',
   'image/jpeg': 'jpg',
@@ -11,6 +22,8 @@ const MIME_EXTENSION_MAP: Record<string, string> = {
   'image/gif': 'gif',
   'video/mp4': 'mp4',
   'video/webm': 'webm',
+  'video/quicktime': 'mov',
+  'video/x-matroska': 'mkv',
 }
 
 const sanitizeFilenamePart = (value: string) => {
@@ -54,22 +67,68 @@ const triggerDownload = (href: string, filename: string) => {
   anchor.remove()
 }
 
-export const saveGeneratedAsset = async ({ source, filenamePrefix, fallbackExtension }: SaveGeneratedAssetOptions) => {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-  const baseName = sanitizeFilenamePart(filenamePrefix) + '-' + timestamp
+const dataUrlToBlob = (source: string) => {
+  const commaIndex = source.indexOf(',')
+  if (commaIndex === -1) throw new Error('invalid_data_url')
+
+  const header = source.slice(0, commaIndex)
+  const payload = source.slice(commaIndex + 1)
+  const mimeType = header.match(/^data:([^;,]+)/i)?.[1] || 'application/octet-stream'
+  if (!/;base64(?:;|$)/i.test(header)) {
+    return new Blob([decodeURIComponent(payload)], { type: mimeType })
+  }
+
+  const chunks: ArrayBuffer[] = []
+  const chunkSize = 4 * 1024 * 1024
+  for (let offset = 0; offset < payload.length; offset += chunkSize) {
+    const binary = atob(payload.slice(offset, offset + chunkSize))
+    const bytes = new Uint8Array(binary.length)
+    for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index)
+    chunks.push(bytes.buffer)
+  }
+  return new Blob(chunks, { type: mimeType })
+}
+
+const createPreparedBlob = (blob: Blob, fallbackExtension: string): PreparedGeneratedAsset => {
+  const url = URL.createObjectURL(blob)
+  let released = false
+  return {
+    url,
+    extension: getExtensionFromMime(blob.type) ?? fallbackExtension.toLowerCase(),
+    release: () => {
+      if (released) return
+      released = true
+      URL.revokeObjectURL(url)
+    },
+  }
+}
+
+export const prepareGeneratedAsset = async ({
+  source,
+  fallbackExtension,
+}: PrepareGeneratedAssetOptions): Promise<PreparedGeneratedAsset> => {
+  const extension = getExtensionFromSource(source) ?? fallbackExtension.toLowerCase()
+
+  if (source.startsWith('data:')) {
+    return createPreparedBlob(dataUrlToBlob(source), extension)
+  }
+
+  if (source.startsWith('blob:')) {
+    return { url: source, extension, release: () => undefined }
+  }
 
   try {
     const response = await fetch(source)
     if (!response.ok) throw new Error('fetch_failed')
-    const blob = await response.blob()
-    const extension =
-      getExtensionFromMime(blob.type) ?? getExtensionFromSource(source) ?? fallbackExtension.toLowerCase()
-    const objectUrl = URL.createObjectURL(blob)
-    triggerDownload(objectUrl, baseName + '.' + extension)
-    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1500)
-    return
+    return createPreparedBlob(await response.blob(), extension)
   } catch {
-    const extension = getExtensionFromSource(source) ?? fallbackExtension.toLowerCase()
-    triggerDownload(source, baseName + '.' + extension)
+    return { url: source, extension, release: () => undefined }
   }
+}
+
+export const saveGeneratedAsset = ({ source, filenamePrefix, fallbackExtension }: SaveGeneratedAssetOptions) => {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+  const baseName = sanitizeFilenamePart(filenamePrefix) + '-' + timestamp
+  const extension = getExtensionFromSource(source) ?? fallbackExtension.toLowerCase()
+  triggerDownload(source, baseName + '.' + extension)
 }

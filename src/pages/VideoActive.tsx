@@ -10,7 +10,11 @@ import {
 import { Link, useNavigate } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabaseClient'
-import { saveGeneratedAsset } from '../lib/downloadMedia'
+import {
+  prepareGeneratedAsset,
+  saveGeneratedAsset,
+  type PreparedGeneratedAsset,
+} from '../lib/downloadMedia'
 import { applyMagicPromptSet } from '../lib/qualityPrompt'
 import { TopNav } from '../components/TopNav'
 import { GuestLanding } from './GuestLanding'
@@ -191,7 +195,7 @@ export function VideoActive() {
   const [negativePrompt, setNegativePrompt] = useState('')
   const [width, setWidth] = useState(LANDSCAPE_MAX.width)
   const [height, setHeight] = useState(LANDSCAPE_MAX.height)
-  const [displayVideo, setDisplayVideo] = useState<string | null>(null)
+  const [displayVideo, setDisplayVideo] = useState<PreparedGeneratedAsset | null>(null)
   const [statusMessage, setStatusMessage] = useState('')
   const [isRunning, setIsRunning] = useState(false)
   const [session, setSession] = useState<Session | null>(null)
@@ -203,13 +207,21 @@ export function VideoActive() {
   const [errorModalMessage, setErrorModalMessage] = useState<string | null>(null)
   const [isSavingResult, setIsSavingResult] = useState(false)
   const runIdRef = useRef(0)
+  const displayVideoRef = useRef<PreparedGeneratedAsset | null>(null)
   const navigate = useNavigate()
+
+  const replaceDisplayVideo = useCallback((next: PreparedGeneratedAsset | null) => {
+    const previous = displayVideoRef.current
+    if (previous && previous !== next) previous.release()
+    displayVideoRef.current = next
+    setDisplayVideo(next)
+  }, [])
 
   const accessToken = session?.access_token ?? ''
   const selectedVideoLength = FIXED_VIDEO_LENGTH
   const requiredTickets = selectedVideoLength.ticketCost
   const canGenerate = Boolean(sourcePayload && !isRunning && session)
-  const isGif = displayVideo?.startsWith('data:image/gif')
+  const isGif = displayVideo?.extension === 'gif'
 
   const viewerStyle = useMemo(
     () =>
@@ -217,6 +229,15 @@ export function VideoActive() {
         '--studio-aspect': `${Math.max(1, width)} / ${Math.max(1, height)}`,
       }) as CSSProperties,
     [height, width],
+  )
+
+  useEffect(
+    () => () => {
+      runIdRef.current += 1
+      displayVideoRef.current?.release()
+      displayVideoRef.current = null
+    },
+    [],
   )
 
   useEffect(() => {
@@ -424,20 +445,33 @@ export function VideoActive() {
       runIdRef.current = runId
       setIsRunning(true)
       setStatusMessage('')
-      setDisplayVideo(null)
+      replaceDisplayVideo(null)
 
       try {
         const submitted = await submitVideo(imagePayload, accessToken)
         if (runIdRef.current !== runId) return
 
+        let resultVideoSource: string | null = null
         if ('videos' in submitted && submitted.videos.length) {
-          setDisplayVideo(submitted.videos[0])
+          resultVideoSource = submitted.videos[0]
         } else if ('jobId' in submitted) {
           const polled = await pollJob(submitted.jobId, runId, accessToken)
           if (runIdRef.current !== runId) return
           if (polled.status === 'done' && polled.videos.length) {
-            setDisplayVideo(polled.videos[0])
+            resultVideoSource = polled.videos[0]
           }
+        }
+
+        if (resultVideoSource) {
+          const preparedVideo = await prepareGeneratedAsset({
+            source: resultVideoSource,
+            fallbackExtension: resultVideoSource.startsWith('data:image/gif') ? 'gif' : 'mp4',
+          })
+          if (runIdRef.current !== runId) {
+            preparedVideo.release()
+            return
+          }
+          replaceDisplayVideo(preparedVideo)
         }
 
         if (accessToken) {
@@ -455,16 +489,16 @@ export function VideoActive() {
         }
       }
     },
-    [accessToken, fetchTickets, pollJob, session, submitVideo],
+    [accessToken, fetchTickets, pollJob, replaceDisplayVideo, session, submitVideo],
   )
 
   const clearImage = useCallback(() => {
     setSourcePreview(null)
     setSourcePayload(null)
     setSourceName('')
-    setDisplayVideo(null)
+    replaceDisplayVideo(null)
     setStatusMessage('')
-  }, [])
+  }, [replaceDisplayVideo])
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -518,19 +552,19 @@ export function VideoActive() {
     await startGeneration(sourcePayload)
   }
 
-  const handleSaveResult = useCallback(async () => {
+  const handleSaveResult = useCallback(() => {
     if (!displayVideo || isSavingResult) return
     setIsSavingResult(true)
     try {
-      await saveGeneratedAsset({
-        source: displayVideo,
+      saveGeneratedAsset({
+        source: displayVideo.url,
         filenamePrefix: 'meltplus-video',
-        fallbackExtension: isGif ? 'gif' : 'mp4',
+        fallbackExtension: displayVideo.extension,
       })
     } finally {
       setIsSavingResult(false)
     }
-  }, [displayVideo, isGif, isSavingResult])
+  }, [displayVideo, isSavingResult])
 
   if (!authReady) {
     return (
@@ -665,7 +699,7 @@ export function VideoActive() {
                 >
                   {isSavingResult ? 'Saving...' : 'Save'}
                 </button>
-                {isGif ? <img src={displayVideo} alt="Generated video" /> : <video controls src={displayVideo} />}
+                {isGif ? <img src={displayVideo.url} alt="Generated video" /> : <video controls src={displayVideo.url} />}
               </div>
             ) : (
               <div className="studio-empty">プレビューはここに表示されます。</div>

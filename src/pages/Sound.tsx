@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type CSSProperties } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { TopNav } from '../components/TopNav'
+import { prepareGeneratedAsset, type PreparedGeneratedAsset } from '../lib/downloadMedia'
 import { supabase } from '../lib/supabaseClient'
 import './camera.css'
 import './video-studio.css'
@@ -141,14 +142,22 @@ export function Sound() {
   const [prompt, setPrompt] = useState('')
   const [audioMode, setAudioMode] = useState<AudioMode>('mode1')
 
-  const [resultVideo, setResultVideo] = useState<string | null>(null)
+  const [resultVideo, setResultVideo] = useState<PreparedGeneratedAsset | null>(null)
   const [statusMessage, setStatusMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [isRunning, setIsRunning] = useState(false)
 
   const previewUrlRef = useRef<string | null>(null)
   const runIdRef = useRef(0)
+  const resultVideoRef = useRef<PreparedGeneratedAsset | null>(null)
   const accessToken = session?.access_token ?? ''
+
+  const replaceResultVideo = useCallback((next: PreparedGeneratedAsset | null) => {
+    const previous = resultVideoRef.current
+    if (previous && previous !== next) previous.release()
+    resultVideoRef.current = next
+    setResultVideo(next)
+  }, [])
 
   useEffect(() => {
     if (!supabase) {
@@ -173,10 +182,13 @@ export function Sound() {
 
   useEffect(
     () => () => {
+      runIdRef.current += 1
       if (previewUrlRef.current) {
         URL.revokeObjectURL(previewUrlRef.current)
         previewUrlRef.current = null
       }
+      resultVideoRef.current?.release()
+      resultVideoRef.current = null
     },
     [],
   )
@@ -230,7 +242,7 @@ export function Sound() {
 
       setErrorMessage('')
       setStatusMessage('')
-      setResultVideo(null)
+      replaceResultVideo(null)
 
       try {
         const metadata = await readVideoMetadata(file)
@@ -257,7 +269,7 @@ export function Sound() {
         setErrorMessage(error instanceof Error ? error.message : String(error))
       }
     },
-    [resetSource],
+    [replaceResultVideo, resetSource],
   )
 
   const canGenerate = useMemo(
@@ -356,7 +368,7 @@ export function Sound() {
     const runId = runIdRef.current + 1
     runIdRef.current = runId
     setIsRunning(true)
-    setResultVideo(null)
+    replaceResultVideo(null)
     setErrorMessage('')
     setStatusMessage('音声付き動画を生成しています')
 
@@ -408,7 +420,15 @@ export function Sound() {
 
       if (audioMode === 'mode2') {
         if (runIdRef.current !== runId) return
-        setResultVideo(audioVideo)
+        const preparedVideo = await prepareGeneratedAsset({
+          source: audioVideo,
+          fallbackExtension: inferVideoExt(audioVideo).replace(/^\./, ''),
+        })
+        if (runIdRef.current !== runId) {
+          preparedVideo.release()
+          return
+        }
+        replaceResultVideo(preparedVideo)
         setStatusMessage('生成が完了しました。')
         return
       }
@@ -416,7 +436,15 @@ export function Sound() {
       setStatusMessage('音声付き動画を生成しています')
       const muxedVideo = await muxWithOriginalVideo(audioVideo, pipelineUsageId, accessToken, audioMode)
       if (runIdRef.current !== runId) return
-      setResultVideo(muxedVideo)
+      const preparedVideo = await prepareGeneratedAsset({
+        source: muxedVideo,
+        fallbackExtension: inferVideoExt(muxedVideo).replace(/^\./, ''),
+      })
+      if (runIdRef.current !== runId) {
+        preparedVideo.release()
+        return
+      }
+      replaceResultVideo(preparedVideo)
       setStatusMessage('生成が完了しました。')
     } catch (error) {
       if (runIdRef.current !== runId) return
@@ -428,7 +456,7 @@ export function Sound() {
         if (accessToken) void fetchTickets(accessToken)
       }
     }
-  }, [accessToken, audioMode, canGenerate, fetchTickets, muxWithOriginalVideo, pollJob, prompt, sourceBase64, sourceDuration, sourceExt, sourceName])
+  }, [accessToken, audioMode, canGenerate, fetchTickets, muxWithOriginalVideo, pollJob, prompt, replaceResultVideo, sourceBase64, sourceDuration, sourceExt, sourceName])
 
   if (!authReady) {
     return (
@@ -552,10 +580,14 @@ export function Sound() {
               </div>
             ) : resultVideo ? (
               <div className="studio-result-media">
-                <a className="studio-save-btn sound-download" href={resultVideo} download="meltplus-audio-video.mp4">
+                <a
+                  className="studio-save-btn sound-download"
+                  href={resultVideo.url}
+                  download={`meltplus-audio-video.${resultVideo.extension}`}
+                >
                   保存
                 </a>
-                <video src={resultVideo} controls />
+                <video src={resultVideo.url} controls />
               </div>
             ) : (
               <div className="studio-empty">生成結果はここに表示されます。</div>
